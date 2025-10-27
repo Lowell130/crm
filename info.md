@@ -1,7 +1,7 @@
 
 ---
 
-## Prompt completo e migliorato per il progetto CRM
+## Inizio nuovo progetto, guidami nella creazione passo passo
 
 ### Obiettivo generale
 
