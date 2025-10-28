@@ -1,5 +1,5 @@
 export function useAuth() {
-  const token = useCookie('accessToken', { sameSite: 'lax', secure: process.env.NODE_ENV === 'production' })
+  const token = useCookie('accessToken', { sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/', maxAge: 3600 })
   const isAuthenticated = computed(() => Boolean(token.value))
 
   const login = async ({ email, password }) => {
