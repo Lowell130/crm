@@ -22,7 +22,7 @@
 
           <div class="w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0">
             <button type="button" @click="openCreate"
-                    class="flex items-center justify-center text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-4 py-2">
+                    class="flex items-center justify-center text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-full text-sm px-4 py-2">
               <svg class="h-3.5 w-3.5 mr-2" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                 <path clip-rule="evenodd" fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />
               </svg>
@@ -34,7 +34,7 @@
  <button
   ref="filterBtn"
   @click="toggleFilter"
-  class="w-full md:w-auto flex items-center justify-center py-2 px-4 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
+  class="w-full md:w-auto flex items-center justify-center py-2 px-4 text-sm font-medium text-gray-900 bg-white rounded-full border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
   type="button">
   <!-- icone + testo -->
   Filtra
@@ -90,37 +90,145 @@
                 <th class="px-4 py-3"><span class="sr-only">Azioni</span></th>
               </tr>
             </thead>
-            <tbody>
-              <tr v-if="pending" class="border-b"><td class="px-4 py-3" colspan="5">Caricamento…</td></tr>
-              <tr v-else-if="error" class="border-b"><td class="px-4 py-3 text-red-600" colspan="5">{{ errorMessage }}</td></tr>
-              <tr v-else-if="!customers.length" class="border-b"><td class="px-4 py-3" colspan="5">Nessun cliente trovato.</td></tr>
 
-              <tr v-for="c in customers" :key="c._id" class="border-b">
-                <th scope="row" class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">
-                  <div class="flex flex-col">
-                    <span v-if="c.kind==='B2B'">{{ c.company_name || '—' }}</span>
-                    <span v-else>{{ [c.first_name, c.last_name].filter(Boolean).join(' ') || '—' }}</span>
-                    <span class="text-xs text-gray-500">ID: <span class="font-mono">{{ c._id }}</span></span>
-                  </div>
-                </th>
-                <td class="px-4 py-3">
-                  <span class="px-2 py-0.5 rounded-full text-xs"
-                        :class="c.kind==='B2B' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'">
-                    {{ c.kind }}
-                  </span>
-                </td>
-                <td class="px-4 py-3">
-                  <span v-if="c.kind==='B2B'">{{ c.vat_number || '—' }}</span>
-                  <span v-else>{{ c.codice_fiscale || '—' }}</span>
-                </td>
-                <td class="px-4 py-3">{{ c.email || '—' }}</td>
-                <td class="px-4 py-3 flex items-center justify-end">
-                  <button class="inline-flex items-center text-sm font-medium hover:bg-gray-100 p-1.5 text-gray-500 hover:text-gray-800 rounded-lg" type="button">
-                    <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" /></svg>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
+
+           <tbody>
+  <!-- SKELETON: loading -->
+  <template v-if="pending">
+    <tr v-for="i in 8" :key="'sk-'+i" class="border-b">
+      <td class="px-4 py-3">
+        <div class="animate-pulse">
+          <div class="h-4 bg-gray-200 rounded w-40 mb-2"></div>
+          <div class="h-3 bg-gray-200 rounded w-24"></div>
+        </div>
+      </td>
+      <td class="px-4 py-3">
+        <div class="animate-pulse h-5 bg-gray-200 rounded w-16"></div>
+      </td>
+      <td class="px-4 py-3">
+        <div class="animate-pulse h-4 bg-gray-200 rounded w-32"></div>
+      </td>
+      <td class="px-4 py-3">
+        <div class="animate-pulse h-4 bg-gray-200 rounded w-48"></div>
+      </td>
+      <td class="px-4 py-3">
+        <div class="animate-pulse h-5 bg-gray-200 rounded w-8 ml-auto"></div>
+      </td>
+    </tr>
+  </template>
+
+  <!-- ERRORE: riga con retry -->
+  <tr v-else-if="error" class="border-b">
+    <td class="px-4 py-5 text-red-700" colspan="5">
+      <div class="flex items-start justify-between gap-4">
+        <div class="text-sm">
+          <div class="font-medium">Errore durante il caricamento</div>
+          <div class="opacity-80">{{ errorMessage }}</div>
+        </div>
+        <div class="flex gap-2">
+          <button
+            class="px-3 py-1.5 text-sm rounded-lg border"
+            @click="fetchCustomers()"
+          >
+            Riprova
+          </button>
+        </div>
+      </div>
+    </td>
+  </tr>
+
+  <!-- NESSUN RISULTATO -->
+  <tr v-else-if="!customers.length" class="border-b">
+    <td class="px-4 py-8 text-center text-gray-500" colspan="5">
+      <div class="flex flex-col items-center gap-2">
+        <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M10 4h10M4 8h16M4 12h10M4 16h16M4 20h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <div class="text-sm">Nessun cliente trovato</div>
+        <div class="text-xs text-gray-400">Prova a cambiare i filtri o la ricerca</div>
+        <div class="flex gap-2 mt-2">
+          <button @click="resetFilters(); applyFilters()" class="px-3 py-1.5 text-xs rounded-lg border">Reset filtri</button>
+          <button @click="openCreate" class="px-3 py-1.5 text-xs rounded-lg text-white bg-primary-700 hover:bg-primary-800">Aggiungi cliente</button>
+        </div>
+      </div>
+    </td>
+  </tr>
+
+  <!-- RIGHE DATI -->
+  <tr v-else v-for="c in customers" :key="c._id" class="border-b">
+    <th scope="row" class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">
+      <div class="flex flex-col">
+        <span v-if="c.kind==='B2B'">{{ c.company_name || '—' }}</span>
+        <span v-else>{{ [c.first_name, c.last_name].filter(Boolean).join(' ') || '—' }}</span>
+        <span class="text-xs text-gray-500">ID: <span class="font-mono">{{ c._id }}</span></span>
+      </div>
+    </th>
+    <td class="px-4 py-3">
+      <span class="px-2 py-0.5 rounded-full text-xs"
+            :class="c.kind==='B2B' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'">
+        {{ c.kind }}
+      </span>
+    </td>
+    <td class="px-4 py-3">
+      <span v-if="c.kind==='B2B'">{{ c.vat_number || '—' }}</span>
+      <span v-else>{{ c.codice_fiscale || '—' }}</span>
+    </td>
+    <td class="px-4 py-3">{{ c.email || '—' }}</td>
+
+<td class="px-4 py-3 flex items-center justify-end gap-1">
+  <!-- Dettaglio -->
+  <NuxtLink
+    :to="`/customers/details/${c._id}`"
+    class="inline-flex items-center p-1.5 rounded-lg text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+    aria-label="Apri dettaglio cliente"
+    title="Dettaglio"
+  >
+  <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.213 9.787a3.391 3.391 0 0 0-4.795 0l-3.425 3.426a3.39 3.39 0 0 0 4.795 4.794l.321-.304m-.321-4.49a3.39 3.39 0 0 0 4.795 0l3.424-3.426a3.39 3.39 0 0 0-4.794-4.795l-1.028.961"/>
+</svg>
+
+
+
+  </NuxtLink>
+
+  <!-- Modifica -->
+  <button
+    type="button"
+    class="inline-flex items-center p-1.5 rounded-lg text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+    aria-label="Modifica cliente"
+    title="Modifica"
+    @click="onEdit(c)"
+  >
+    <!-- icona matita -->
+    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z"/>
+    </svg>
+  </button>
+
+  <!-- Elimina -->
+  <button
+    type="button"
+    class="inline-flex items-center p-1.5 rounded-lg text-gray-500 hover:text-red-700 hover:bg-red-50 disabled:opacity-50"
+    :disabled="deletingId===c._id"
+    aria-label="Elimina cliente"
+    title="Elimina"
+    @click="onDelete(c)"
+  >
+    <!-- icona X -->
+    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M6 18 17.94 6M18 18 6.06 6"/>
+    </svg>
+  </button>
+</td>
+
+
+
+  </tr>
+</tbody>
+
+
           </table>
         </div>
 
@@ -193,6 +301,77 @@
   </div>
 </Transition>
 
+<!-- Toasts -->
+<!-- Toasts -->
+<div class="fixed top-4 right-4 z-[60] space-y-3">
+  <div
+    v-for="t in toasts"
+    :key="t.id"
+    class="flex items-center w-full max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow-sm border border-red-100 dark:text-gray-400 dark:bg-gray-800"
+    role="alert"
+  >
+    <!-- Icona -->
+    <div
+      class="inline-flex items-center justify-center shrink-0 w-8 h-8 text-red-500 bg-red-100 rounded-lg dark:bg-red-800 dark:text-red-200"
+    >
+      <svg
+        class="w-5 h-5"
+        aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="currentColor"
+        viewBox="0 0 20 20"
+      >
+        <path
+          d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z"
+        />
+      </svg>
+      <span class="sr-only">Error icon</span>
+    </div>
+
+    <!-- Contenuto -->
+    <div class="ms-3 text-sm font-normal flex-1">
+      <!-- <div class="font-medium text-gray-900">{{ t.title }}</div> -->
+      <div class="ms-3 text-sm font-normal">{{ t.message }}</div>
+
+      <div v-if="t.onRetry" class="flex gap-2 mt-2">
+        <button
+          class="px-2.5 py-1 text-xs rounded border text-gray-700 hover:bg-gray-100"
+          @click="() => { t.onRetry(); dismissToast(t.id) }"
+        >
+          Riprova
+        </button>
+      </div>
+    </div>
+
+    <!-- Bottone Chiudi -->
+    <button
+      type="button"
+      class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
+      @click="dismissToast(t.id)"
+      aria-label="Chiudi"
+    >
+      <span class="sr-only">Close</span>
+      <svg
+        class="w-3 h-3"
+        aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 14 14"
+      >
+        <path
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+        />
+      </svg>
+    </button>
+  </div>
+</div>
+
+
+
   </section>
 </template>
 
@@ -227,6 +406,52 @@
 import { onClickOutside } from '@vueuse/core'
 
 const { apiFetch } = useApi()
+
+const router = useRouter()
+const deletingId = ref(null)
+
+function onEdit(c) {
+  // Semplice: portiamo l’utente in una pagina di edit (la crei dopo).
+  // Opzione A: pagina dedicata /customers/[id]/edit
+  router.push(`/customers/${c._id}/edit`)
+
+  // In alternativa (se non vuoi creare una pagina subito):
+  // router.push(`/customers/${c._id}?edit=1`)
+  // e nella pagina dettaglio, se trovi ?edit=1, mostri un form di edit.
+}
+
+async function onDelete(c) {
+  if (deletingId.value || !c?._id) return
+  const ok = window.confirm(`Confermi l'eliminazione del cliente ${c.company_name || (c.first_name + ' ' + c.last_name) || c._id}?`)
+  if (!ok) return
+
+  try {
+    deletingId.value = c._id
+    await apiFetch(`/customers/${c._id}`, { method: 'DELETE' })
+
+    // aggiorna lista
+    // se rimane lista vuota e non sei alla prima pagina, torna indietro di pagina
+    if (customers.value.length === 1 && page.value > 1) {
+      page.value -= 1
+    }
+    await fetchCustomers()
+
+    pushToast({
+      title: 'Cliente eliminato',
+      message: `Il cliente è stato eliminato correttamente.`
+    })
+  } catch (e) {
+    const msg = e?.data?.detail || e?.message || 'Errore durante l’eliminazione'
+    pushToast({
+      title: 'Eliminazione fallita',
+      message: msg,
+      onRetry: () => onDelete(c)
+    })
+  } finally {
+    deletingId.value = null
+  }
+}
+
 
 // UI: modale e scroll-lock
 // stato esistente
@@ -381,7 +606,14 @@ const fetchCustomers = async () => {
     hasNext.value = customers.value.length === limit.value &&
       (total.value ? page.value * limit.value < total.value : true)
   } catch (e) {
-    error.value = e?.data?.detail || e?.message || 'Errore durante il caricamento'
+    const msg = e?.data?.detail || e?.message || 'Errore durante il caricamento'
+    error.value = msg
+    // toast con retry
+    pushToast({
+      title: 'Impossibile caricare i clienti',
+      message: msg,
+      onRetry: () => fetchCustomers()
+    })
   } finally {
     pending.value = false
   }
@@ -436,7 +668,13 @@ const resetFilters = () => { kind.value = '' }
 // derived
 const fromItem = computed(() => customers.value.length ? (page.value - 1) * limit.value + 1 : 0)
 const toItem = computed(() => (page.value - 1) * limit.value + customers.value.length)
-const totalDisplay = computed(() => (total.value ?? `${toItem.value}+`))
+const totalDisplay = computed(() => {
+  if (total.value !== null && total.value !== undefined) return total.value
+  // se non sappiamo il totale:
+  if (customers.value.length === 0) return '0'
+  // abbiamo almeno una pagina piena ma senza totale certo
+  return `${toItem.value}+`
+})
 const errorMessage = computed(() => String(error.value || ''))
 
 // primo load
@@ -448,4 +686,24 @@ const onCreated = async () => {
   await fetchCustomers()
   closeCreate()
 }
+
+
+// --- TOAST API minimal ---
+const toasts = reactive([])
+let toastIdSeq = 1
+
+function pushToast({ title, message, onRetry } = {}) {
+  const id = toastIdSeq++
+  const t = { id, title: title || 'Errore', message: message || '', onRetry: onRetry || null }
+  toasts.push(t)
+  // autodismiss in 5s
+  setTimeout(() => dismissToast(id), 5000)
+  return id
+}
+function dismissToast(id) {
+  const idx = toasts.findIndex(t => t.id === id)
+  if (idx !== -1) toasts.splice(idx, 1)
+}
+
+
 </script>
