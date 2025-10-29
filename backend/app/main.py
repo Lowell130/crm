@@ -1,29 +1,42 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
-from .core.config import settings
-from .db import init_beanie
-from .api.routes import health, auth, customers, files, stats, exports, communications
+from .config import ALLOWED_ORIGINS
+from .routers import auth as auth_router
+from .routers import customers as customers_router
+from .indexes import ensure_indexes
+from .db import db
 
-app = FastAPI(title="CRM API", version="1.0.0")
+from contextlib import asynccontextmanager
 
-# CORS
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await ensure_indexes()
+    yield
+
+app = FastAPI(title="CRM Backend", version="0.1.1", lifespan=lifespan)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins,
+    allow_origins=ALLOWED_ORIGINS or ["http://localhost:3000", "http://127.0.0.1:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+     expose_headers=["X-Total-Count"],  # <— IMPORTANTE
 )
 
-@app.on_event("startup")
-async def on_startup():
-    await init_beanie()
+app.include_router(auth_router.router)
+app.include_router(customers_router.router)
 
-# Routers
-app.include_router(health.router, prefix="/api/v1")
-app.include_router(auth.router, prefix="/api/v1", tags=["auth"])
-app.include_router(customers.router, prefix="/api/v1", tags=["customers"])
-app.include_router(files.router, prefix="/api/v1", tags=["files"])
-app.include_router(stats.router, prefix="/api/v1", tags=["stats"])
-app.include_router(exports.router, prefix="/api/v1", tags=["exports"])
-app.include_router(communications.router, prefix="/api/v1", tags=["communications"])
+# ✅ Root "alive"
+@app.get("/", tags=["health"])
+async def root():
+    return {"status": "ok", "service": "crm-backend"}
+
+# ✅ Health più completo (ping a Mongo)
+@app.get("/health", tags=["health"])
+async def health():
+    try:
+        await db.command("ping")
+        return {"status": "ok", "db": "ok"}
+    except Exception as e:
+        return {"status": "degraded", "db": f"error: {type(e).__name__}"}
