@@ -1,0 +1,247 @@
+{
+  "info": {
+    "name": "CRM Backend API",
+    "description": "Collection per testare il backend FASTAPI/MongoDB \u2013 autenticazione + clienti (B2B/B2C) con CF e indici unici.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/"
+      }
+    },
+    {
+      "name": "Register User (first time)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Password!123\"\n}"
+        },
+        "url": "{{base_url}}/auth/register"
+      }
+    },
+    {
+      "name": "Login User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let data = pm.response.json();",
+              "if (data && data.access_token) {",
+              "  pm.environment.set(\"access_token\", data.access_token);",
+              "}",
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Password!123\"\n}"
+        },
+        "url": "{{base_url}}/auth/login"
+      }
+    },
+    {
+      "name": "Create Customer B2B - Acme SpA",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let data = pm.response.json();",
+              "if (data && data._id) {",
+              "  pm.environment.set(\"customer_id\", data._id);",
+              "}",
+              "pm.test(\"Status code is 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"kind\": \"B2B\",\n  \"company_name\": \"Acme SpA\",\n  \"vat_number\": \"IT12345678901\",\n  \"email\": \"contatto@acme.it\",\n  \"phone\": \"+39 055 123456\",\n  \"address\": \"Via Roma 1, Firenze\",\n  \"notes\": \"Cliente pilota B2B\"\n}"
+        },
+        "url": "{{base_url}}/customers"
+      }
+    },
+    {
+      "name": "Create Customer B2B - Globex SRL",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"kind\": \"B2B\",\n  \"company_name\": \"Globex SRL\",\n  \"vat_number\": \"IT98765432109\",\n  \"email\": \"info@globex.it\",\n  \"phone\": \"+39 02 000111\",\n  \"address\": \"Via Torino 22, Milano\",\n  \"notes\": \"Secondo cliente B2B\"\n}"
+        },
+        "url": "{{base_url}}/customers"
+      }
+    },
+    {
+      "name": "Create Customer B2C - Mario Rossi",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"kind\": \"B2C\",\n  \"first_name\": \"Mario\",\n  \"last_name\": \"Rossi\",\n  \"codice_fiscale\": \"RSSMRA80A01H501U\",\n  \"email\": \"mario.rossi@example.com\",\n  \"phone\": \"+39 333 987654\",\n  \"address\": \"Via Milano 10, Milano\",\n  \"notes\": \"Cliente pilota B2C\"\n}"
+        },
+        "url": "{{base_url}}/customers"
+      }
+    },
+    {
+      "name": "Create Customer B2C - Giulia Bianchi",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"kind\": \"B2C\",\n  \"first_name\": \"Giulia\",\n  \"last_name\": \"Bianchi\",\n  \"codice_fiscale\": \"BNCGLI90B41F205X\",\n  \"email\": \"giulia.bianchi@example.com\",\n  \"phone\": \"+39 340 222333\",\n  \"address\": \"Via Garibaldi 5, Torino\"\n}"
+        },
+        "url": "{{base_url}}/customers"
+      }
+    },
+    {
+      "name": "List Customers",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": "{{base_url}}/customers?skip=0&limit=20"
+      }
+    },
+    {
+      "name": "Attempt Duplicate B2B (same VAT) \u2192 expect 409",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"kind\": \"B2B\",\n  \"company_name\": \"Acme SpA (dup)\",\n  \"vat_number\": \"IT12345678901\",\n  \"email\": \"dup@acme.it\"\n}"
+        },
+        "url": "{{base_url}}/customers"
+      }
+    },
+    {
+      "name": "Attempt Duplicate B2C (same CF) \u2192 expect 409",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"kind\": \"B2C\",\n  \"first_name\": \"Mario\",\n  \"last_name\": \"Rossi\",\n  \"codice_fiscale\": \"RSSMRA80A01H501U\",\n  \"email\": \"dup.rossi@example.com\"\n}"
+        },
+        "url": "{{base_url}}/customers"
+      }
+    }
+  ]
+}
