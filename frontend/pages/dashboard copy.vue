@@ -69,8 +69,9 @@
     </ul>
 
     <div class="flex justify-end mt-3 gap-2">
-      <button class="px-3 py-2 text-xs font-medium text-center focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 rounded-full  dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900" @click="resetFilters">Reset</button>
-      <button class="px-3 py-2 text-xs font-medium text-center text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 rounded-full dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800" @click="applyFilters">Applica</button>
+      <button class="px-3 py-1.5 text-sm rounded-lg border" @click="resetFilters">Reset</button>
+      <button class="px-3 py-1.5 text-sm rounded-lg text-white bg-primary-700 hover:bg-primary-800"
+              @click="applyFilters">Applica</button>
     </div>
   </div>
 </div>
@@ -127,7 +128,7 @@
         <!-- Paginazione -->
         <nav class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 p-4" aria-label="Table navigation">
           <span class="text-sm text-gray-500">
-            Mostrando <span class="font-semibold text-gray-900">{{ fromItem }} – {{ toItem }}</span> di
+            Mostrando <span class="font-semibold text-gray-900">{{ fromItem }}–{{ toItem }}</span> di
             <span class="font-semibold text-gray-900">{{ totalDisplay }}</span>
           </span>
           <ul class="inline-flex items-stretch -space-x-px">
@@ -154,72 +155,35 @@
     </div>
 
     <!-- Modale con componente -->
-   <!-- Modale con componente -->
-<Transition name="fade">
-  <div
-    v-if="showCreate"
-    class="fixed inset-0 z-50 flex items-center justify-center"
-    role="dialog"
-    aria-modal="true"
-  >
-    <!-- backdrop -->
-    <div class="fixed inset-0 bg-black/40" @click="closeCreate"></div>
+    <div v-show="showCreate"   class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true">
+      <div class="fixed inset-0 bg-black/40" @click="closeCreate"></div>
+      <div :class="{ 'hide-scrollbar': showCreate }" class="relative p-4 w-full max-w-2xl max-h-[90vh] overflow-y-auto overscroll-contain bg-white rounded-lg shadow sm:p-5">
+        <div class="flex justify-between items-center pb-4 mb-4 border-b">
+          <h3 class="text-lg font-semibold text-gray-900">Aggiungi cliente</h3>
+          <button type="button" class="text-gray-400 hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5" @click="closeCreate">
+            <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+            <span class="sr-only">Chiudi</span>
+          </button>
+        </div>
 
-    <!-- dialog -->
-    <div
-      ref="modalRef"
-      class="relative p-4 w-full max-w-2xl max-h-[90vh] overflow-y-auto overscroll-contain bg-white rounded-lg shadow sm:p-5 hide-scrollbar outline-none"
-      tabindex="-1"
-    >
-      <div class="flex justify-between items-center pb-4 mb-4">
-        <h3 id="modal-title" class="text-lg font-semibold text-gray-900">Aggiungi cliente</h3>
-        <button
-          type="button"
-          class="text-gray-400 hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5"
-          @click="closeCreate"
-        >
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fill-rule="evenodd"
-              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-              clip-rule="evenodd"
-            />
-          </svg>
-        </button>
+        <!-- QUI il componente -->
+        <CustomerForm :kindDefault="'B2C'" @created="onCreated" @cancel="closeCreate" />
       </div>
-
-      <CustomerForm :kindDefault="'B2C'" @created="onCreated" @cancel="closeCreate" />
     </div>
-  </div>
-</Transition>
-
   </section>
 </template>
 
 <style scoped>
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-/* Nasconde la scrollbar ma mantiene lo scroll */
 .hide-scrollbar {
-  -ms-overflow-style: none; /* IE/Edge */
-  scrollbar-width: none;    /* Firefox */
-}
-.hide-scrollbar::-webkit-scrollbar { display: none; }
-
-/* Evita il "salto" quando blocchi lo scroll del body */
-.body-lock {
-  overflow: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-
+.hide-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
 
 </style>
 
@@ -229,125 +193,16 @@ import { onClickOutside } from '@vueuse/core'
 const { apiFetch } = useApi()
 
 // UI: modale e scroll-lock
-// stato esistente
 const showCreate = ref(false)
+const lockScroll = () => document.documentElement.classList.add('overflow-y-hidden')
+const unlockScroll = () => document.documentElement.classList.remove('overflow-y-hidden')
+watch(showCreate, (open) => open ? lockScroll() : unlockScroll())
 
-// —— SCROLL LOCK senza salto (compensazione scrollbar) ——
-let prevFocusEl = null
-let bodyOriginalPaddingRight = ''
-const getScrollbarWidth = () => {
-  const sc = document.createElement('div')
-  sc.style.visibility = 'hidden'
-  sc.style.overflow = 'scroll'
-  sc.style.msOverflowStyle = 'scrollbar'
-  sc.style.position = 'absolute'
-  sc.style.top = '-9999px'
-  sc.style.width = '100px'
-  document.body.appendChild(sc)
-  const inner = document.createElement('div')
-  inner.style.width = '100%'
-  sc.appendChild(inner)
-  const width = sc.offsetWidth - inner.offsetWidth
-  sc.parentNode.removeChild(sc)
-  return width
-}
 
-const lockScroll = () => {
-  const sw = getScrollbarWidth()
-  bodyOriginalPaddingRight = document.body.style.paddingRight || ''
-  if (sw > 0) document.body.style.paddingRight = `${sw}px`
-  document.body.classList.add('body-lock')
-}
-const unlockScroll = () => {
-  document.body.classList.remove('body-lock')
-  document.body.style.paddingRight = bodyOriginalPaddingRight
-}
+onBeforeUnmount(unlockScroll)
 
-// —— Focus trap + ESC + restore focus ——
-const modalRef = ref(null)
-const closeBtnRef = ref(null)
-const focusableSelector = [
-  'a[href]',
-  'area[href]',
-  'input:not([disabled]):not([type="hidden"])',
-  'select:not([disabled])',
-  'textarea:not([disabled])',
-  'button:not([disabled])',
-  'iframe',
-  '[tabindex]:not([tabindex="-1"])',
-  '[contenteditable="true"]'
-].join(',')
-
-const focusFirstElement = () => {
-  const root = modalRef.value
-  if (!root) return
-  const els = Array.from(root.querySelectorAll(focusableSelector))
-  // preferisci il primo campo del form, altrimenti il bottone chiudi
-  const preferred = els.find(el => el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA')
-  if (preferred) preferred.focus()
-  else if (closeBtnRef.value) closeBtnRef.value.focus()
-  else root.focus()
-}
-
-const trapTab = (e) => {
-  if (e.key !== 'Tab') return
-  const root = modalRef.value
-  if (!root) return
-  const els = Array.from(root.querySelectorAll(focusableSelector)).filter(el => el.offsetParent !== null || el === document.activeElement)
-  if (els.length === 0) return
-
-  const first = els[0]
-  const last = els[els.length - 1]
-  const active = document.activeElement
-
-  if (e.shiftKey && (active === first || active === root)) {
-    e.preventDefault()
-    last.focus()
-  } else if (!e.shiftKey && active === last) {
-    e.preventDefault()
-    first.focus()
-  }
-}
-
-const onModalKeydown = (e) => {
-  if (e.key === 'Escape') {
-    e.preventDefault()
-    closeCreate()
-    return
-  }
-  trapTab(e)
-}
-
-const openCreate = () => {
-  prevFocusEl = document.activeElement
-  showCreate.value = true
-}
-
-const closeCreate = () => {
-  showCreate.value = false
-}
-
-watch(showCreate, (open) => {
-  if (open) {
-    // lock scroll + focus management
-    lockScroll()
-    // aspetta il render
-    requestAnimationFrame(() => {
-      if (modalRef.value) modalRef.value.focus()
-      focusFirstElement()
-    })
-  } else {
-    // restore
-    unlockScroll()
-    if (prevFocusEl && typeof prevFocusEl.focus === 'function') {
-      prevFocusEl.focus()
-    }
-  }
-})
-
-onBeforeUnmount(() => {
-  unlockScroll()
-})
+const openCreate = () => { showCreate.value = true }
+const closeCreate = () => { showCreate.value = false }
 
 // stato query/lista
 const q = ref('')

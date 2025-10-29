@@ -1,4 +1,7 @@
 <template>
+<div>
+    <!-- <hr class="h-px mb-3 bg-gray-200 border-0 dark:bg-gray-700"> -->
+
   <form @submit.prevent="submit" class="space-y-6">
     <!-- Tipo cliente -->
     <div class="flex gap-6">
@@ -92,17 +95,18 @@
     <!-- Azioni -->
     <div class="flex gap-3 items-center">
       <button type="submit" :disabled="loading"
-              class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 disabled:opacity-50">
+        class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"     >
         {{ loading ? 'Salvataggio...' : 'Crea cliente' }}
       </button>
       <button type="button" @click="$emit('cancel')"
-              class="px-4 py-2 rounded-lg border hover:bg-gray-50 text-sm">
+              class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700">
         Annulla
       </button>
       <p v-if="formError" class="text-red-600 text-sm">{{ formError }}</p>
       <p v-if="success" class="text-green-700 text-sm">Cliente creato!</p>
     </div>
   </form>
+  </div>
 </template>
 
 <script setup>
