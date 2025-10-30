@@ -83,7 +83,6 @@
   </template>
 </CustomersTable>
 
-
         <!-- Paginazione -->
         <CustomersPagination
           :page="page"
