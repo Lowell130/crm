@@ -14,7 +14,7 @@
       <tbody>
         <!-- SKELETON -->
         <template v-if="pending">
-          <tr v-for="i in 8" :key="'sk-'+i" class="border-b">
+          <tr v-for="i in 8" :key="'sk-'+i" class="border-b dark:border-gray-700">
             <td class="px-4 py-3">
               <div class="animate-pulse">
                 <div class="h-4 bg-gray-200 rounded w-40 mb-2"></div>
@@ -29,7 +29,7 @@
         </template>
 
         <!-- EMPTY -->
-        <tr v-else-if="!items.length" class="border-b">
+        <tr v-else-if="!items.length" class="border-b dark:border-gray-700">
           <td class="px-4 py-8 text-center text-gray-500" colspan="5">
             <slot name="empty">
               <div class="flex flex-col items-center gap-2">
@@ -44,7 +44,7 @@
         </tr>
 
         <!-- ROWS -->
-        <tr v-else v-for="c in items" :key="c._id" class="border-b">
+        <tr v-else v-for="c in items" :key="c._id" class="border-b dark:border-gray-700">
           <th class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">
             <div class="flex flex-col">
               <span v-if="c.kind==='B2B'">{{ c.company_name || '—' }}</span>
@@ -82,3 +82,12 @@ defineProps({
   pending: { type: Boolean, default: false }
 })
 </script>
+
+
+<style scoped>
+.border-b {
+    border-bottom-width: 1px;
+    border-color: #e5e7eb;
+}
+
+</style>
