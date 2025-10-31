@@ -67,7 +67,7 @@
 
           <td class="px-4 py-3">{{ c.email || '—' }}</td>
 
-          <td class="px-4 py-3 flex items-center justify-end gap-1">
+          <td class="px-4 py-3 inline-flex items-center gap-2">
             <slot name="actions" :customer="c" />
           </td>
         </tr>

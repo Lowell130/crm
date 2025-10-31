@@ -50,7 +50,7 @@
     <!-- Dettaglio -->
     <NuxtLink
       :to="`/customers/details/${c._id}`"
-      class="inline-flex items-center p-1.5 rounded-lg text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+      class="inline-flex items-center p-1.5 rounded-full text-gray-500 hover:text-gray-800 hover:bg-gray-100"
       title="Dettaglio"
     >
       <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
@@ -61,7 +61,7 @@
 
     <!-- Modifica -->
     <button
-      class="inline-flex items-center p-1.5 rounded-lg text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+      class="inline-flex items-center p-1.5 rounded-full text-gray-500 hover:text-gray-800 hover:bg-gray-100"
       title="Modifica"
       @click="onEdit(c)"
     >
@@ -73,7 +73,7 @@
 
     <!-- Elimina -->
     <button
-      class="inline-flex items-center p-1.5 rounded-lg text-gray-500 hover:text-red-700 hover:bg-red-50 disabled:opacity-50"
+      class="inline-flex items-center p-1.5 rounded-full text-gray-500 hover:text-red-700 hover:bg-red-50 disabled:opacity-50"
       :disabled="deletingId===c._id"
       title="Elimina"
       @click="onDelete(c)"

@@ -108,65 +108,80 @@
                     {{ inv.status }}
                   </span>
                 </td>
-                <td class="px-4 py-3 flex items-center justify-end relative">
-                  <button
-                    class="inline-flex items-center p-0.5 text-sm font-medium text-center text-gray-500 hover:text-gray-800 rounded-lg focus:outline-none dark:text-gray-400 dark:hover:text-gray-100"
-                    type="button"
-                    @click="toggleRow(inv.id)"
-                  >
-                    <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"/>
-                    </svg>
-                  </button>
+          <td class="px-4 py-3 text-right whitespace-nowrap">
+  <div class="inline-flex items-center gap-2">
 
-                  <!-- Dropdown Azioni (gestito via Vue, niente data-dropdown-toggle) -->
-                  <div
-                    v-if="openRowId === inv.id"
-                    class="absolute right-0 top-8 z-10 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600"
-                  >
-                    <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
-                      <li>
-                        <NuxtLink :to="`/invoices/details/${inv.id}`" class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
-                          Apri
-                        </NuxtLink>
-                      </li>
-                      <li>
-  <NuxtLink
-    :to="`/customers/details/${inv.customer_id}`"
-    class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-  >
-    Apri cliente
-  </NuxtLink>
-</li>
-<li>
-  <button
-    class="w-full text-left block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-    @click="togglePaid(inv)"
-  >
-    {{ inv.paid ? 'Segna come non pagata' : 'Segna come pagata' }}
-  </button>
-</li>
+    <!-- Apri fattura -->
+    <NuxtLink
+      :to="`/invoices/details/${inv.id}`"
+      class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-600"
+      aria-label="Apri fattura" title="Apri fattura"
+    >
+      <!-- Eye icon -->
+      <svg class="w-5 h-5 text-gray-600 dark:text-gray-200" viewBox="0 0 24 24" fill="none">
+        <path stroke="currentColor" stroke-width="2" d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/>
+        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+      </svg>
+    </NuxtLink>
 
+    <!-- Apri cliente -->
+    <NuxtLink
+      :to="`/customers/details/${inv.customer_id}`"
+      class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-600"
+      aria-label="Apri cliente" title="Apri cliente"
+    >
+      <!-- User icon -->
+      <svg class="w-5 h-5 text-gray-600 dark:text-gray-200" viewBox="0 0 24 24" fill="none">
+        <path stroke="currentColor" stroke-width="2" d="M20 21a8 8 0 0 0-16 0"/>
+        <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+      </svg>
+    </NuxtLink>
 
-                      <li>
-                        <button
-                          class="w-full text-left block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                          @click="editNumber(inv)"
-                        >
-                          Modifica numero
-                        </button>
-                      </li>
-                    </ul>
-                    <div class="py-1">
-                      <button
-                        class="w-full text-left block py-2 px-4 text-sm text-red-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-red-400 dark:hover:text-white"
-                        @click="deleteInvoice(inv)"
-                      >
-                        Elimina
-                      </button>
-                    </div>
-                  </div>
-                </td>
+    <!-- Pagata / Non pagata -->
+    <button
+      class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-600"
+      @click="togglePaid(inv)"
+      :aria-label="inv.paid ? 'Segna come non pagata' : 'Segna come pagata'"
+      :title="inv.paid ? 'Segna come non pagata' : 'Segna come pagata'"
+    >
+      <!-- Check-circle filled when paid, outline when not -->
+      <svg v-if="inv.paid" class="w-5 h-5 text-emerald-600" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+        <path stroke="currentColor" stroke-width="2" d="m8.5 12.5 2.5 2.5 4.5-5"/>
+      </svg>
+      <svg v-else class="w-5 h-5 text-gray-500" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
+      </svg>
+    </button>
+
+    <!-- Modifica numero -->
+    <button
+      class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-600"
+      @click="editNumber(inv)"
+      aria-label="Modifica numero" title="Modifica numero"
+    >
+      <!-- Hash/edit icon -->
+      <svg class="w-5 h-5 text-gray-600 dark:text-gray-200" viewBox="0 0 24 24" fill="none">
+        <path stroke="currentColor" stroke-width="2" d="M7 9h10M7 15h10M9 3 7 21M17 3l-2 18"/>
+      </svg>
+    </button>
+
+    <!-- Elimina -->
+    <button
+      class="p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/30"
+      @click="deleteInvoice(inv)"
+      aria-label="Elimina" title="Elimina"
+    >
+      <!-- Trash icon -->
+       <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M6 18 17.94 6M18 18 6.06 6"/>
+      </svg>
+    </button>
+
+  </div>
+</td>
+
               </tr>
 
               <tr v-if="!pending && items.length === 0">
@@ -235,6 +250,8 @@ watch(qInput, (val) => {
     refresh()
   }, 250) // 250ms è un buon compromesso
 })
+
+
 
 
 const headers = computed(() => ({
@@ -340,24 +357,19 @@ function formatDate(s){
 }
 
 async function togglePaid(inv){
-  const nowISO = new Date().toISOString().slice(0,10) // YYYY-MM-DD
-  const body = inv.paid
-    ? { paid: false, paid_at: null }
-    : { paid: true,  paid_at: nowISO }
-
+  const wantPaid = !inv.paid
+  const today = new Date().toISOString().slice(0,10)
   try{
     const updated = await $fetch(`${API_BASE}/invoices/${inv.id}`, {
       method: 'PATCH',
       headers: { ...headers.value, 'Content-Type':'application/json' },
-      body
+      body: { paid: wantPaid, paid_at: wantPaid ? today : null }
     })
-    // aggiorna local
-    const i = items.value.findIndex(x => x.id === inv.id)
-    if (i !== -1) items.value[i] = updated
+    // aggiorna localmente riga
+    const idx = items.value.findIndex(x => x.id === inv.id)
+    if (idx !== -1) items.value[idx] = updated
   }catch(e){
     alert(e?.data?.detail || 'Errore aggiornamento pagamento')
-  }finally{
-    openRowId.value = null
   }
 }
 

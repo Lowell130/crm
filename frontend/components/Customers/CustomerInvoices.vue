@@ -5,7 +5,7 @@
 
       <NuxtLink
         :to="`/invoices/new?customer_id=${customerId}`"
-        class="inline-flex items-center text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-3 py-2"
+       type="button" class="inline-flex items-center text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-full text-sm px-3 py-2"
       >
         <svg class="h-3.5 w-3.5 mr-2" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
           <path clip-rule="evenodd" fill-rule="evenodd"
