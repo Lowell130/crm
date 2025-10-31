@@ -89,11 +89,19 @@
     <div v-else class="bg-white rounded-lg shadow p-6">
       <p class="text-gray-600">Nessun dato disponibile.</p>
     </div>
+
+<div class="bg-white rounded-lg shadow p-6 space-y-6">
+<CustomerInvoices :customer-id="route.params.id" />
+</div>
+
   </section>
 </template>
 
 <script setup>
 definePageMeta({ layout: 'default' })
+import CustomerInvoices from '@/components/Customers/CustomerInvoices.vue'
+
+
 
 const route = useRoute()
 const router = useRouter()

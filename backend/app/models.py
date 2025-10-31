@@ -1,4 +1,3 @@
-# app/models.py
 from typing import Optional, Literal
 from pydantic import BaseModel, Field, EmailStr, model_validator
 
@@ -96,6 +95,9 @@ class InvoiceBase(BaseModel):
     # numero fattura: se non impostato, viene autogenerato
     number: Optional[str] = None
     status: str = Field("draft", pattern="^(draft|issued|cancelled)$")
+    # ✅ Pagamenti
+    paid: bool = False
+    paid_at: Optional[date] = None
 
     @validator("customer_id")
     def validate_object_id(cls, v):
@@ -113,6 +115,9 @@ class InvoiceUpdate(BaseModel):
     items: Optional[List[InvoiceItem]] = None
     number: Optional[str] = None
     status: Optional[str] = Field(None, pattern="^(draft|issued|cancelled)$")
+    # ✅ Pagamenti aggiornabili
+    paid: Optional[bool] = None
+    paid_at: Optional[date] = None
 
 class InvoiceDB(InvoiceBase):
     id: str

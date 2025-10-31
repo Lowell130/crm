@@ -1,6 +1,8 @@
+<!-- invoices/[id].vue -->
 <template>
   <section class="p-4 space-y-6">
     <div class="flex items-center justify-between">
+
       <div class="flex items-center gap-3">
         <NuxtLink to="/invoices" class="text-blue-600 hover:underline">&larr; Elenco</NuxtLink>
         <h1 class="text-xl font-semibold">Fattura {{ invoice?.number || '—' }}</h1>
@@ -12,15 +14,46 @@
         </span>
       </div>
 
-      <div class="flex flex-wrap gap-2">
-        <button class="px-3 py-2 border rounded" @click="printInvoice">Stampa</button>
-        <button class="px-3 py-2 border rounded" @click="editNumber">Modifica numero</button>
-        <button class="px-3 py-2 border rounded" @click="markPaid">Segna come pagata</button>
-        <button class="px-3 py-2 border rounded" @click="duplicate">Duplica</button>
-        <button class="px-3 py-2 border rounded text-orange-700" @click="cancelInvoice"
+       <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4">
+                  <div class="w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0">
+<NuxtLink
+  :to="`/invoices/${id}/edit`"
+  class="text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-xs px-5 py-2.5 me-2 mb-2"
+>
+  Modifica
+</NuxtLink>
+
+        <button class="text-white bg-yellow-400 hover:bg-yellow-500 focus:outline-none focus:ring-4 focus:ring-yellow-300 font-medium rounded-full text-xs px-5 py-2.5 text-center me-2 mb-2 dark:focus:ring-yellow-900" @click="printInvoice">Stampa</button>
+        <button class="text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 font-medium rounded-full text-xs px-5 py-2.5 text-center me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800" @click="editNumber">Modifica numero</button>
+        
+        <button class="text-white bg-purple-700 hover:bg-purple-800 focus:outline-none focus:ring-4 focus:ring-purple-300 font-medium rounded-full text-xs px-5 py-2.5 text-center mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900" @click="duplicate">Duplica</button>
+        <button class="text-white bg-red-700 hover:bg-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 font-medium rounded-full text-xs px-5 py-2.5 text-center me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900" @click="cancelInvoice"
                 :disabled="invoice?.status==='cancelled'">Annulla</button>
-        <button class="px-3 py-2 border rounded text-red-700" @click="deleteInvoice">Elimina</button>
+        <button class="text-white bg-red-700 hover:bg-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 font-medium rounded-full text-xs px-5 py-2.5 text-center me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900" @click="deleteInvoice">Elimina</button>
+     <button
+  v-if="!invoice?.paid"
+  class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-full text-xs px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+  @click="markPaid"
+>
+  Segna come pagata
+</button>
+<button
+  v-else
+  class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-full text-xs px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+  @click="unmarkPaid"
+>
+  Segna come NON pagata
+</button>
+
+     
       </div>
+      </div>
+
+
+
+
+
+
     </div>
 
     <!-- Avvisi -->
@@ -89,6 +122,12 @@
         <div class="flex justify-between"><span>Imponibile</span><span>{{ n(invoice.subtotal) }} €</span></div>
         <div class="flex justify-between"><span>IVA</span><span>{{ n(invoice.vat_total) }} €</span></div>
         <div class="flex justify-between text-lg font-semibold border-t pt-2"><span>Totale</span><span>{{ n(invoice.total) }} €</span></div>
+      <div class="mt-2 text-sm">
+  <span class="px-2 py-0.5 rounded"
+        :class="invoice.paid ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'">
+    {{ invoice.paid ? `Pagata${invoice.paid_at ? ' il ' + formatDate(invoice.paid_at) : ''}` : 'Non pagata' }}
+  </span>
+</div>
       </div>
 
       <!-- Note -->
@@ -153,16 +192,12 @@ async function editNumber(){
 }
 
 async function markPaid(){
-  // Backend non ha campo "paid_at": annotiamo nelle note mantenendo quelle esistenti
   const today = new Date().toISOString().slice(0,10)
-  const prefix = `[PAGATA ${today}] `
-  const already = (invoice.value?.notes || '').includes('[PAGATA ')
-  const newNotes = already ? invoice.value.notes : (prefix + (invoice.value?.notes || ''))
   try{
     const updated = await $fetch(`${API_BASE}/invoices/${id.value}`, {
       method: 'PATCH',
       headers: { ...headers.value, 'Content-Type':'application/json' },
-      body: { notes: newNotes }
+      body: { paid: true, paid_at: today }
     })
     invoice.value = updated
     successMsg.value = 'Segnata come pagata'
@@ -171,6 +206,22 @@ async function markPaid(){
     errorMsg.value = e?.data?.detail || 'Errore aggiornamento'
   }
 }
+
+async function unmarkPaid(){
+  try{
+    const updated = await $fetch(`${API_BASE}/invoices/${id.value}`, {
+      method: 'PATCH',
+      headers: { ...headers.value, 'Content-Type':'application/json' },
+      body: { paid: false, paid_at: null }
+    })
+    invoice.value = updated
+    successMsg.value = 'Segnata come NON pagata'
+    setTimeout(()=> successMsg.value='', 1200)
+  }catch(e){
+    errorMsg.value = e?.data?.detail || 'Errore aggiornamento'
+  }
+}
+
 
 async function cancelInvoice(){
   if (!confirm('Confermi annullamento della fattura?')) return
@@ -209,7 +260,7 @@ async function duplicate(){
       body: payload
     })
     successMsg.value = `Duplicata come ${created.number}`
-    setTimeout(()=> navigateTo(`/invoices/${created.id}`), 600)
+    setTimeout(()=> navigateTo(`/invoices/details/${created.id}`), 600)
   }catch(e){
     errorMsg.value = e?.data?.detail || 'Errore duplicazione'
   }
@@ -228,6 +279,25 @@ async function deleteInvoice(){
   }
 }
 
+
+function formatDate(val) {
+  if (!val) return ''
+  let d
+
+  // Gestisce stringhe 'YYYY-MM-DD'
+  if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
+    const [y, m, day] = val.split('-').map(Number)
+    d = new Date(y, m - 1, day)
+  } else {
+    // ISO o Date
+    d = new Date(val)
+  }
+
+  if (isNaN(d.getTime())) return String(val)
+  return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+
+
 function printInvoice(){
   window.print()
 }
@@ -239,4 +309,10 @@ function printInvoice(){
   #__nuxt > *:not(#__nuxt [id="print-area"]) { display: none !important; }
   #print-area { display: block !important; }
 }
+.border-b {
+    border-bottom-width: 1px;
+    border-color: #e5e7eb;
+}
+
 </style>
+

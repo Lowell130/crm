@@ -1,3 +1,5 @@
+<!-- components/Customers/CustomersSearch.vue -->
+
 <template>
   <form class="flex items-center" @submit.prevent="$emit('search')">
     <label for="customers-search" class="sr-only">Cerca</label>
