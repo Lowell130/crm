@@ -1,60 +1,85 @@
 <!-- invoices/[id].vue -->
 <template>
   <section class="p-4 space-y-6">
-    <div class="flex items-center justify-between">
+   <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
 
-      <div class="flex items-center gap-3">
-        <NuxtLink to="/invoices" class="text-blue-600 hover:underline">&larr; Elenco</NuxtLink>
-        <h1 class="text-xl font-semibold">Fattura {{ invoice?.number || '—' }}</h1>
-        <span v-if="invoice" class="inline-flex items-center px-2 py-1 rounded text-xs"
-              :class="invoice.status === 'issued' ? 'bg-green-100 text-green-700'
-                    : invoice.status === 'draft' ? 'bg-yellow-100 text-yellow-700'
-                    : 'bg-red-100 text-red-700'">
-          {{ invoice.status }}
-        </span>
-      </div>
+  <!-- Testo / breadcrumb + stato -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:gap-3">
+    <!-- <NuxtLink to="/invoices" class="text-blue-600 hover:underline">&larr; Elenco</NuxtLink> -->
+    <h1 class="text-xl font-semibold mt-1 sm:mt-0">Fattura {{ invoice?.number || '—' }}</h1>
+    <span
+      v-if="invoice"
+      class="inline-flex items-center px-2 py-1 rounded text-xs mt-2 sm:mt-0 w-fit"
+      :class="invoice.status === 'issued' ? 'bg-green-100 text-green-700'
+            : invoice.status === 'draft' ? 'bg-yellow-100 text-yellow-700'
+            : 'bg-red-100 text-red-700'">
+      {{ invoice.status }}
+    </span>
+  </div>
 
-       <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4">
-                  <div class="w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0">
-<NuxtLink
-  :to="`/invoices/${id}/edit`"
-  class="text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-xs px-5 py-2.5 me-2 mb-2"
->
-  Modifica
-</NuxtLink>
+  <!-- Pulsanti -->
+  <div class="w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0">
+    <NuxtLink
+      :to="`/invoices/${id}/edit`"
+      class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-xs px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+    >
+      Modifica
+    </NuxtLink>
 
-        <button class="text-white bg-yellow-400 hover:bg-yellow-500 focus:outline-none focus:ring-4 focus:ring-yellow-300 font-medium rounded-full text-xs px-5 py-2.5 text-center me-2 mb-2 dark:focus:ring-yellow-900" @click="printInvoice">Stampa</button>
-        <button class="text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 font-medium rounded-full text-xs px-5 py-2.5 text-center me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800" @click="editNumber">Modifica numero</button>
-        
-        <button class="text-white bg-purple-700 hover:bg-purple-800 focus:outline-none focus:ring-4 focus:ring-purple-300 font-medium rounded-full text-xs px-5 py-2.5 text-center mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900" @click="duplicate">Duplica</button>
-        <button class="text-white bg-red-700 hover:bg-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 font-medium rounded-full text-xs px-5 py-2.5 text-center me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900" @click="cancelInvoice"
-                :disabled="invoice?.status==='cancelled'">Annulla</button>
-        <button class="text-white bg-red-700 hover:bg-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 font-medium rounded-full text-xs px-5 py-2.5 text-center me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900" @click="deleteInvoice">Elimina</button>
-     <button
-  v-if="!invoice?.paid"
-  class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-full text-xs px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
-  @click="markPaid"
->
-  Segna come pagata
-</button>
-<button
-  v-else
-  class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-full text-xs px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
-  @click="unmarkPaid"
->
-  Segna come NON pagata
-</button>
+    <button
+      class="text-white bg-yellow-400 hover:bg-yellow-500 focus:outline-none focus:ring-4 focus:ring-yellow-300 font-medium rounded-full text-xs px-5 py-2.5"
+      @click="printInvoice"
+    >
+      Stampa
+    </button>
 
-     
-      </div>
-      </div>
+    <button
+      class="text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 font-medium rounded-full text-xs px-5 py-2.5"
+      @click="editNumber"
+    >
+      Modifica numero
+    </button>
 
+    <button
+      class="text-white bg-purple-700 hover:bg-purple-800 focus:outline-none focus:ring-4 focus:ring-purple-300 font-medium rounded-full text-xs px-5 py-2.5"
+      @click="duplicate"
+    >
+      Duplica
+    </button>
 
+    <button
+      class="text-white bg-red-800 hover:bg-red-900 focus:outline-none focus:ring-4 focus:ring-red-300 font-medium rounded-full text-xs px-5 py-2.5 disabled:opacity-60"
+      @click="cancelInvoice"
+      :disabled="invoice?.status==='cancelled'"
+    >
+      Annulla
+    </button>
 
+    <button
+      class="text-white bg-red-700 hover:bg-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 font-medium rounded-full text-xs px-5 py-2.5"
+      @click="deleteInvoice"
+    >
+      Elimina
+    </button>
 
+    <button
+      v-if="!invoice?.paid"
+      class="text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100 font-medium rounded-full text-xs px-5 py-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700"
+      @click="markPaid"
+    >
+      Segna come pagata
+    </button>
 
+    <button
+      v-else
+      class="text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-100 font-medium rounded-full text-xs px-5 py-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700"
+      @click="unmarkPaid"
+    >
+      Segna come NON pagata
+    </button>
+  </div>
+</div>
 
-    </div>
 
     <!-- Avvisi -->
     <p v-if="errorMsg" class="text-red-600 text-sm">{{ errorMsg }}</p>
