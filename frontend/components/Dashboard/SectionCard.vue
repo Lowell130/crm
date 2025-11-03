@@ -1,3 +1,4 @@
+<!-- Dashboard/SectionCard -->
 <template>
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
     <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700">

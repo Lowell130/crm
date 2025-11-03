@@ -1,3 +1,4 @@
+# main.py
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from .config import ALLOWED_ORIGINS

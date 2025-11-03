@@ -1,3 +1,4 @@
+# routers/auth.py
 from fastapi import APIRouter, HTTPException, status
 from pydantic import EmailStr
 from ..db import users_col

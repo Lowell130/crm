@@ -1,3 +1,4 @@
+# routers/customers.py
 from fastapi import APIRouter, Depends, HTTPException, Query, status, Response
 from bson import ObjectId
 from pymongo.errors import DuplicateKeyError
@@ -11,6 +12,16 @@ router = APIRouter(prefix="/customers", tags=["customers"])
 def _to_public(doc) -> CustomerPublic:
     doc["_id"] = str(doc["_id"])
     return CustomerPublic(**doc)
+
+@router.get("/stats/distribution")
+async def customers_distribution(user=Depends(get_current_user)):
+    """
+    Restituisce la distribuzione B2B/B2C:
+    { "b2b": <int>, "b2c": <int>, "total": <int> }
+    """
+    b2b = await customers_col.count_documents({"kind": "B2B"})
+    b2c = await customers_col.count_documents({"kind": "B2C"})
+    return {"b2b": int(b2b), "b2c": int(b2c), "total": int(b2b + b2c)}
 
 @router.post("", response_model=CustomerPublic, status_code=201)
 async def create_customer(payload: CustomerCreate, user=Depends(get_current_user)):
