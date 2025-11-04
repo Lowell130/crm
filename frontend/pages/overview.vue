@@ -38,9 +38,10 @@
   <RecentInvoicesList :limit="5" />
 </SectionCard>
 
-      <SectionCard title="Fatture in scadenza (10 gg)">
-        <UpcomingDue />
-      </SectionCard>
+   <SectionCard title="Fatture in scadenza (10 gg)">
+  <UpcomingDue :limit="5" />
+</SectionCard>
+
     </div>
 
     <!-- Distribuzione / Top clienti -->

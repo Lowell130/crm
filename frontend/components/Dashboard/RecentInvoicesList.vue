@@ -45,7 +45,7 @@
 
     <!-- Footer con pulsanti -->
     <div
-      class="pt-3 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 border-t border-gray-100 dark:border-gray-700 mt-2 pt-3"
+      class="pt-3 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mt-2"
     >
       <NuxtLink
         v-if="showButton"

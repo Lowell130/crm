@@ -34,20 +34,23 @@
             </NuxtLink>
 
             <!-- (Facoltativo) Filtro stato -->
-            <div class="flex items-center space-x-3 w-full md:w-auto">
-              <div class="w-full md:w-48">
-                <select
-                  v-model="status"
-                  @change="onFilterStatus"
-                  class="w-full py-2 px-3 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200"
-                >
-                  <option value="">Tutti gli stati</option>
-                  <option value="issued">Emesse</option>
-                  <option value="draft">Bozze</option>
-                  <option value="cancelled">Annullate</option>
-                </select>
-              </div>
-            </div>
+          <!-- (Facoltativo) Filtro stato -->
+<div class="flex items-center space-x-3 w-full md:w-auto">
+  <div class="w-full md:w-48">
+    <select
+      v-model="status"
+      @change="onFilterStatus"
+      class="w-full py-2 px-3 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200"
+    >
+      <option value="">Tutti gli stati</option>
+      <option value="issued">Emesse</option>
+      <option value="draft">Bozze</option>
+      <option value="cancelled">Annullate</option>
+      <option value="due10">In scadenza (10 gg)</option> <!-- 👈 NEW -->
+    </select>
+  </div>
+</div>
+
           </div>
         </div>
 
@@ -259,22 +262,56 @@ const headers = computed(() => ({
 }))
 
 const { data, pending, refresh } = await useAsyncData('invoices-list', async () => {
-  const res = await $fetch(`${API_BASE}/invoices`, {
+  // modalità standard (status: '', 'issued', 'draft', 'cancelled')
+  if (status.value !== 'due10') {
+    const res = await $fetch(`${API_BASE}/invoices`, {
+      headers: headers.value,
+      query: {
+        q: q.value || undefined,
+        status: status.value || undefined,
+        skip: skip.value,
+        limit: limit.value
+      },
+      onResponse({ response }) {
+        const t = response.headers.get('x-total-count')
+        total.value = t ? Number(t) : 0
+      }
+    })
+    return res
+  }
+
+  // modalità "In scadenza (10 gg)" = emesse, non pagate, con due_date tra oggi e +10
+  // 1) prendi un batch ampio lato server (issued + unpaid) e filtra lato client
+  const BIG_LIMIT = 1000
+  const batch = await $fetch(`${API_BASE}/invoices`, {
     headers: headers.value,
     query: {
-      q: q.value || undefined,           // <— usa la query applicata
-      status: status.value || undefined,
-      skip: skip.value,
-      limit: limit.value
-    },
-    onResponse({ response }) {
-      const t = response.headers.get('x-total-count')
-      total.value = t ? Number(t) : 0
+      status: 'issued',
+      paid: false,
+      skip: 0,
+      limit: BIG_LIMIT
     }
   })
-  return res
-}, { watch: [skip, limit, status] })
 
+  const today = new Date()
+  const in10  = new Date(today); in10.setDate(today.getDate() + 10)
+
+  const filtered = batch
+    .filter(inv => inv.due_date) // deve esistere una scadenza
+    .filter(inv => {
+      const d = new Date(inv.due_date)
+      return d >= new Date(today.toDateString()) && d <= in10
+    })
+    .sort((a, b) => (a.due_date || '').localeCompare(b.due_date || ''))
+
+  // 2) aggiorna il totale con i risultati filtrati
+  total.value = filtered.length
+
+  // 3) applica la paginazione client-side
+  const start = skip.value
+  const end   = Math.min(skip.value + limit.value, filtered.length)
+  return filtered.slice(start, end)
+}, { watch: [skip, limit, status, q] })
 
 function applySearch() {
   q.value = (qInput.value || '').trim()

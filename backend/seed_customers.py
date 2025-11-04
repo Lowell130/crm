@@ -25,7 +25,7 @@ BASE_URL = os.getenv("SEED_BASE_URL", "http://localhost:8000")  # es. http://loc
 LOGIN_ENDPOINT = os.getenv("SEED_LOGIN_ENDPOINT", "/customers")  # se non usi login, lascia pure
 LOGIN_EMAIL = os.getenv("SEED_LOGIN_EMAIL", "admin@example.com")  # se usi login con email/password
 LOGIN_PASSWORD = os.getenv("SEED_LOGIN_PASSWORD", "Password!123")
-EXTERNAL_BEARER = os.getenv("SEED_BEARER", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QGV4YW1wbGUxLmNvbSIsImV4cCI6MTc2MTMxMjA3OX0.8c7THuxwQpUFBcEO-I3YldEMpqCaG5V-jReo7jR7F6Q")  # se già hai un token: esporta SEED_BEARER="eyJhbGciOi..."
+EXTERNAL_BEARER = os.getenv("SEED_BEARER", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBleGFtcGxlLmNvbSIsImlhdCI6MTc2MjI0NTUwNiwiZXhwIjoxNzYyMjQ5MTA2fQ.9yK95cXXcShvgyz5VfDqclxcKXMnxu8JuizuaG3-_Os")  # se già hai un token: esporta SEED_BEARER="eyJhbGciOi..."
 
 CUSTOMERS_ENDPOINT = "/customers"
 TOTAL = int(os.getenv("SEED_TOTAL", "100"))  # Quanti clienti creare
