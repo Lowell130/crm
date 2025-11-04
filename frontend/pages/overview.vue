@@ -7,7 +7,16 @@
         <button class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-full text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700" @click="doRefresh" :disabled="loading">
           {{ loading ? 'Aggiorno…' : 'Aggiorna' }}
         </button>
-        <button class="text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">Esporta</button>
+       
+      
+      
+      <!-- header -->
+<button class="text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+        :disabled="exporting"
+        @click="exportExcel">
+  {{ exporting ? 'Esporto…' : 'Esporta' }}
+</button>
+      
       </div>
     </div>
 
@@ -108,6 +117,45 @@ const countsClients = computed(() => ({
 function doRefresh () {
   refreshAll({ kpiRange: {}, tsDays: 30, topCfg: { limit: 5, days: 90 } })
 }
+
+const exporting = ref(false)
+const token = useState('token', () => null)
+const runtime = useRuntimeConfig()
+const API_BASE = runtime.public?.apiBase || runtime.public?.NUXT_PUBLIC_API_BASE || 'http://localhost:8000'
+const headers = computed(() => (token.value ? { Authorization: `Bearer ${token.value}` } : {}))
+
+async function exportExcel () {
+  exporting.value = true
+  try {
+    // esempio: ultimi 30 giorni
+    const to = new Date()
+    const from = new Date(); from.setDate(to.getDate() - 29)
+    const date_from = from.toISOString().slice(0,10)
+    const date_to   = to.toISOString().slice(0,10)
+
+    // usa ofetch raw per avere accesso alla Response
+    const res = await $fetch.raw(`${API_BASE}/reports/finance/export.xlsx`, {
+      headers: headers.value,
+      query: { date_from, date_to },
+      responseType: 'blob' // Nuxt 3/ofetch supporta 'blob'
+    })
+
+    const blob = res._data // ofetch mette il blob in _data con responseType: 'blob'
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `report_finance_${date_from}_${date_to}.xlsx`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    alert(e?.data?.detail || e?.message || 'Errore esportazione')
+  } finally {
+    exporting.value = false
+  }
+}
+
 
 onMounted(doRefresh)
 </script>
