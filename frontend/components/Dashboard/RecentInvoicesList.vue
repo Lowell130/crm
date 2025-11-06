@@ -15,7 +15,7 @@
         <div class="flex items-center gap-2 min-w-0">
           <NuxtLink
             :to="`/invoices/details/${inv.id}`"
-            class="text-blue-600 hover:underline truncate"
+            class="text-blue-600 hover:underline truncate text-sm"
             :title="inv.number"
           >
             {{ inv.number || '—' }}
@@ -56,7 +56,7 @@
       </NuxtLink>
 
       <NuxtLink
-        to="/invoices/create"
+        to="/invoices/new"
         class="inline-flex justify-center items-center text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-300 rounded-full px-4 py-2 w-full sm:w-auto text-center"
       >
         + Nuova fattura

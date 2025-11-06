@@ -3,7 +3,7 @@
     <div v-if="loading" class="text-sm text-gray-500">Caricamento…</div>
     <ul v-else>
       <li v-for="inv in dueSoonLimited" :key="inv.id" class="py-2 flex items-center justify-between border-b">
-        <NuxtLink :to="`/invoices/details/${inv.id}`" class="text-blue-600 hover:underline">
+        <NuxtLink :to="`/invoices/details/${inv.id}`" class="text-blue-600 hover:underline text-sm">
           {{ inv.number }} <span class="text-xs text-gray-500">({{ inv.due_date || '—' }})</span>
         </NuxtLink>
         <div class="text-sm" :class="inv.paid ? 'text-emerald-700' : 'text-amber-700'">

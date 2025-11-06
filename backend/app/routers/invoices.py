@@ -1,3 +1,4 @@
+# app/routers/invoices.py
 from datetime import date, timedelta
 from typing import Optional, List
 
@@ -9,7 +10,7 @@ from pymongo import ReturnDocument
 from app.db import invoices, customers_col, counters
 from app.models import InvoiceCreate, InvoiceUpdate, InvoiceOut, InvoiceItem
 from ..auth import get_current_user
-from app.utils.sequences import next_invoice_number
+from app.utils.sequences import next_invoice_number  # deve accettare (owner_id, issue_date)
 
 router = APIRouter(prefix="/invoices", tags=["invoices"])
 
@@ -28,11 +29,16 @@ def parse_object_id(s: str) -> ObjectId:
     return ObjectId(s)
 
 def serialize(inv: dict) -> InvoiceOut:
+    inv = dict(inv)
     inv["id"] = str(inv.pop("_id"))
+    inv.pop("owner_id", None)  # non esporre l'owner
+    # normalizza customer_id a string per coerenza output (se presente)
+    if "customer_id" in inv and isinstance(inv["customer_id"], ObjectId):
+        inv["customer_id"] = str(inv["customer_id"])
     return InvoiceOut(**inv)
 
-def build_invoice_filter(q: Optional[str], status: Optional[str]):
-    query: dict = {}
+def build_invoice_filter(q: Optional[str], status: Optional[str], owner_id: ObjectId) -> dict:
+    query: dict = {"owner_id": owner_id}
     if status in ("issued", "draft", "cancelled"):
         query["status"] = status
     if q:
@@ -66,7 +72,8 @@ async def invoices_stats(
     date_to: Optional[str] = Query(None),
     user=Depends(get_current_user),
 ):
-    q = {}
+    # scope per utente
+    q: dict = {"owner_id": user["_id"]}
     df = _parse_date(date_from)
     dt = _parse_date(date_to)
     if df or dt:
@@ -81,9 +88,7 @@ async def invoices_stats(
     cancelled = await invoices.count_documents({**q, "status": "cancelled"})
     paid_count = await invoices.count_documents({**q, "paid": True})
 
-    pipeline_sum = []
-    if q:
-        pipeline_sum.append({"$match": q})
+    pipeline_sum = [{"$match": q}]
     pipeline_sum += [
         {"$group": {
             "_id": None,
@@ -125,12 +130,12 @@ async def invoices_timeseries(
     start = (today - timedelta(days=days - 1)).isoformat()
 
     pipeline_total = [
-        {"$match": {"issue_date": {"$gte": start}, "status": {"$ne": "cancelled"}}},
+        {"$match": {"owner_id": user["_id"], "issue_date": {"$gte": start}, "status": {"$ne": "cancelled"}}},
         {"$group": {"_id": "$issue_date", "total_day": {"$sum": {"$ifNull": ["$total", 0]}}}},
         {"$sort": {"_id": 1}}
     ]
     pipeline_paid = [
-        {"$match": {"paid": True, "paid_at": {"$gte": start}}},
+        {"$match": {"owner_id": user["_id"], "paid": True, "paid_at": {"$gte": start}}},
         {"$group": {"_id": "$paid_at", "paid_day": {"$sum": {"$ifNull": ["$total", 0]}}}},
         {"$sort": {"_id": 1}}
     ]
@@ -174,7 +179,7 @@ async def invoices_top_customers(
     }
 
     pipeline = [
-        {"$match": {"issue_date": {"$gte": start}, "status": {"$ne": "cancelled"}}},
+        {"$match": {"owner_id": user["_id"], "issue_date": {"$gte": start}, "status": {"$ne": "cancelled"}}},
         {"$group": {
             "_id": {"customer_id": "$customer_id", "name": name_expr},
             "sum_total": {"$sum": {"$ifNull": ["$total", 0]}},
@@ -187,7 +192,7 @@ async def invoices_top_customers(
     rows = await invoices.aggregate(pipeline).to_list(length=limit + 10)
     return [
         {
-            "customer_id": r["_id"]["customer_id"],
+            "customer_id": str(r["_id"]["customer_id"]) if isinstance(r["_id"]["customer_id"], ObjectId) else r["_id"]["customer_id"],
             "name": (r["_id"]["name"] or "").strip(),
             "invoices": int(r.get("count", 0)),
             "amount": round(float(r.get("sum_total", 0.0)), 2)
@@ -210,10 +215,10 @@ async def list_invoices(
     limit: int = 20,
     user=Depends(get_current_user),
 ):
-    query = build_invoice_filter(q, status)
+    query = build_invoice_filter(q, status, user["_id"])
 
     if customer_id:
-        query["customer_id"] = customer_id
+        query["customer_id"] = parse_object_id(customer_id)
 
     if date_from or date_to:
         rng = {}
@@ -239,19 +244,22 @@ async def list_invoices(
 
 @router.get("/{invoice_id}", response_model=InvoiceOut)
 async def get_invoice(invoice_id: str, user=Depends(get_current_user)):
-    doc = await invoices.find_one({"_id": parse_object_id(invoice_id)})
+    doc = await invoices.find_one({"_id": parse_object_id(invoice_id), "owner_id": user["_id"]})
     if not doc:
         raise HTTPException(404, "Fattura non trovata")
     return serialize(doc)
 
 @router.post("", response_model=InvoiceOut, status_code=status.HTTP_201_CREATED)
 async def create_invoice(payload: InvoiceCreate, user=Depends(get_current_user)):
-    cust = await customers_col.find_one({"_id": ObjectId(payload.customer_id)})
+    # 1) il cliente deve appartenere allo stesso owner
+    cust = await customers_col.find_one({"_id": parse_object_id(payload.customer_id), "owner_id": user["_id"]})
     if not cust:
-        raise HTTPException(400, "Cliente inesistente")
+        raise HTTPException(400, "Cliente inesistente o non appartenente al tuo account")
 
-    number = payload.number or await next_invoice_number(payload.issue_date)
+    # 2) numero (per utente/anno) e totali
+    number = payload.number or await next_invoice_number(user["_id"], payload.issue_date)
     subtotal, vat_total, total = compute_totals(payload.items)
+    y = (payload.issue_date or date.today()).year
 
     snapshot = {
         "kind": cust.get("kind"),
@@ -268,7 +276,9 @@ async def create_invoice(payload: InvoiceCreate, user=Depends(get_current_user))
     }
 
     doc = {
-        "customer_id": payload.customer_id,
+        "owner_id": user["_id"],
+        "year": y,
+        "customer_id": parse_object_id(payload.customer_id),
         "issue_date": payload.issue_date.isoformat(),
         "due_date": payload.due_date.isoformat() if payload.due_date else None,
         "notes": payload.notes,
@@ -287,7 +297,8 @@ async def create_invoice(payload: InvoiceCreate, user=Depends(get_current_user))
     try:
         res = await invoices.insert_one(doc)
     except DuplicateKeyError:
-        raise HTTPException(409, "Numero fattura già esistente")
+        # richiede indice unico su (owner_id, year, number)
+        raise HTTPException(409, "Numero fattura già esistente per il tuo account/anno")
 
     inserted = await invoices.find_one({"_id": res.inserted_id})
     return serialize(inserted)
@@ -299,6 +310,8 @@ async def update_invoice(invoice_id: str, payload: InvoiceUpdate, user=Depends(g
 
     if payload.issue_date is not None:
         update["issue_date"] = payload.issue_date.isoformat()
+        # se cambi la data, aggiorna anche l'anno per coerenza con l'indice
+        update["year"] = payload.issue_date.year
     if payload.due_date is not None:
         update["due_date"] = payload.due_date.isoformat()
     if payload.notes is not None:
@@ -321,20 +334,21 @@ async def update_invoice(invoice_id: str, payload: InvoiceUpdate, user=Depends(g
     if getattr(payload, "paid_at", None) is not None:
         update["paid_at"] = payload.paid_at.isoformat()
 
+    # Nessun campo da aggiornare? Ritorna lo stato attuale (sempre scoped)
     if not update:
-        doc = await invoices.find_one({"_id": oid})
+        doc = await invoices.find_one({"_id": oid, "owner_id": user["_id"]})
         if not doc:
             raise HTTPException(404, "Fattura non trovata")
         return serialize(doc)
 
     try:
         updated = await invoices.find_one_and_update(
-            {"_id": oid},
+            {"_id": oid, "owner_id": user["_id"]},
             {"$set": update},
             return_document=ReturnDocument.AFTER,
         )
     except DuplicateKeyError:
-        raise HTTPException(409, "Numero fattura già esistente")
+        raise HTTPException(409, "Numero fattura già esistente per il tuo account/anno")
 
     if not updated:
         raise HTTPException(404, "Fattura non trovata")
@@ -342,15 +356,18 @@ async def update_invoice(invoice_id: str, payload: InvoiceUpdate, user=Depends(g
 
 @router.delete("/{invoice_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_invoice(invoice_id: str, user=Depends(get_current_user)):
-    res = await invoices.delete_one({"_id": parse_object_id(invoice_id)})
+    res = await invoices.delete_one({"_id": parse_object_id(invoice_id), "owner_id": user["_id"]})
     if res.deleted_count == 0:
         raise HTTPException(404, "Fattura non trovata")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @router.get("/number/preview/next", response_model=str)
 async def preview_next_number(issue_date: Optional[date] = None, user=Depends(get_current_user)):
+    """
+    Preview non incrementale del prossimo numero per utente e anno.
+    Richiede che 'counters' mantenga documenti con chiave (owner_id, year, seq).
+    """
     y = (issue_date or date.today()).year
-    key = f"invoice-{y}"
-    doc = await counters.find_one({"_id": key}) or {"seq": 0}
-    seq = doc["seq"] + 1
+    doc = await counters.find_one({"owner_id": user["_id"], "year": y}) or {"seq": 0}
+    seq = int(doc.get("seq", 0)) + 1
     return f"{y}-{seq:05d}"

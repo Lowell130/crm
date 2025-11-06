@@ -32,6 +32,11 @@ export const useAuth = () => {
   if (process.client && token.value && isExpiredToken(token.value)) {
     token.value = null
     try { localStorage.removeItem('token') } catch {}
+    // pulizia stato utente cache
+    const meState = useState('me', () => null)
+    const lastTok = useState('me_last_token', () => null)
+    meState.value = null
+    lastTok.value = null
   }
 
   const login = async (email, password) => {
@@ -40,14 +45,23 @@ export const useAuth = () => {
       body: { email, password }
     })
     token.value = res.access_token
-    // persisti
     try { localStorage.setItem('token', res.access_token) } catch {}
+
+    // non chiamiamo useMe() qui per evitare cicli;
+    // il middleware auth.global si occuperà di fetchMe(true) dopo il login
     return res
   }
 
   const logout = () => {
     token.value = null
     try { localStorage.removeItem('token') } catch {}
+
+    // pulizia immediata della cache utente, così l'header si svuota subito
+    const meState = useState('me', () => null)
+    const lastTok = useState('me_last_token', () => null)
+    meState.value = null
+    lastTok.value = null
+
     navigateTo('/login')
   }
 
