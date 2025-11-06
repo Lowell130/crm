@@ -2,19 +2,19 @@
   <section class="min-h-[calc(100vh-64px-72px)] flex items-center bg-gray-50">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full">
       <div class="grid lg:grid-cols-2 gap-10 items-center">
-
-        <!-- Side text (desktop only) -->
+        
+        <!-- Text block (solo su desktop) -->
         <div class="hidden lg:block">
-          <h2 class="text-3xl font-bold text-gray-900">Bentornato!</h2>
+          <h2 class="text-3xl font-bold text-gray-900">Crea il tuo account</h2>
           <p class="mt-3 text-gray-600">
-            Accedi per gestire clienti, fatture e i tuoi KPI in un’unica dashboard.
+            Inizia gratis. Nessuna carta richiesta.
           </p>
         </div>
 
-        <!-- Login form -->
+        <!-- Registration form -->
         <div class="w-full max-w-md ml-auto">
           <div class="bg-white border border-gray-200 rounded-2xl shadow p-6">
-            <h1 class="text-2xl font-semibold mb-6 text-gray-900">Accedi al CRM</h1>
+            <h1 class="text-2xl font-semibold mb-6 text-gray-900">Registrazione</h1>
 
             <form @submit.prevent="onSubmit" class="space-y-4">
               <!-- Email -->
@@ -43,24 +43,29 @@
                 />
               </div>
 
-              <!-- Submit button -->
+              <!-- Submit Button -->
               <button
                 type="submit"
                 class="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
               >
-                Entra
+                Crea account
               </button>
 
-              <!-- Alert -->
+              <!-- Alert messaggi -->
               <div v-if="error" class="text-sm text-red-600">
                 {{ error }}
               </div>
+
+              <div v-if="success" class="text-sm text-green-700">
+                Registrazione avvenuta. Ora puoi 
+                <NuxtLink to="/login" class="underline hover:text-primary-600">accedere</NuxtLink>.
+              </div>
             </form>
 
-            <!-- Link a registrazione -->
+            <!-- Link login -->
             <p class="mt-4 text-sm text-gray-600">
-              Non hai un account?
-              <NuxtLink to="/register" class="text-primary-600 hover:underline">Registrati</NuxtLink>
+              Hai già un account? 
+              <NuxtLink to="/login" class="text-primary-600 hover:underline">Accedi</NuxtLink>
             </p>
           </div>
         </div>
@@ -76,15 +81,22 @@ definePageMeta({ layout: 'marketing', public: true })
 const email = ref('')
 const password = ref('')
 const error = ref('')
-const { login } = useAuth()
+const success = ref(false)
+
+const runtime = useRuntimeConfig()
+const API_BASE = runtime.public?.apiBase || runtime.public?.NUXT_PUBLIC_API_BASE || 'http://localhost:8000'
 
 const onSubmit = async () => {
   error.value = ''
+  success.value = false
   try {
-    await login(email.value, password.value)
-    navigateTo('/overview')
+    await $fetch(`${API_BASE}/auth/register`, {
+      method: 'POST',
+      body: { email: email.value, password: password.value }
+    })
+    success.value = true
   } catch (e) {
-    error.value = e?.data?.detail || 'Credenziali non valide'
+    error.value = e?.data?.detail || 'Registrazione non riuscita'
   }
 }
 </script>

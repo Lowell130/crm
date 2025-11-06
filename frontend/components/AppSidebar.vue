@@ -54,6 +54,32 @@
   </NuxtLink>
 </li>
 
+<li>
+  <button
+    @click="logout"
+    class="w-full flex items-center p-2 text-base font-medium text-gray-900 rounded-lg dark:text-white hover:bg-red-50 dark:hover:bg-red-900/30 group"
+  >
+    <svg
+      aria-hidden="true"
+      class="w-6 h-6 text-red-600 transition duration-75 group-hover:text-red-700 dark:group-hover:text-red-400"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h5a2 2 0 012 2v1"
+      />
+    </svg>
+    <span class="ml-3 text-red-700 dark:text-red-400 group-hover:text-red-600 dark:group-hover:text-red-300">
+      Logout
+    </span>
+  </button>
+</li>
+
+
       </ul>
     </div>
 
@@ -64,5 +90,7 @@
 </template>
 
 <script setup>
-// nessuna logica JS necessaria per mostrarla
+import { useAuth } from '@/composables/useAuth'
+
+const { logout } = useAuth()
 </script>
