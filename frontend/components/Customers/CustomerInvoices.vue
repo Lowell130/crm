@@ -80,7 +80,7 @@
                 </span>
               </td>
               <td class="px-4 py-3 text-right">
-                <NuxtLink :to="`/invoices/details/${inv.id}`" type="button" class="text-white bg-purple-700 hover:bg-purple-800 focus:outline-none focus:ring-4 focus:ring-purple-300 font-medium rounded-full text-xs px-5 py-2.5 text-center mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900">Apri</NuxtLink>
+                <NuxtLink :to="`/invoices/details/${inv.id}`" type="button" class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 rounded-lg px-3 py-2 text-xs font-medium dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">Apri</NuxtLink>
               </td>
             </tr>
 
