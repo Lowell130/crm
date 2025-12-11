@@ -3,11 +3,11 @@
 
 export const useApi = () => {
   const config = useRuntimeConfig()
-  const token  = useState('token', () => null)
-  const route  = process.client ? useRoute() : null
+  const token = useState('token', () => null)
+  /* const route = process.client ? useRoute() : null  <-- RIMOSSO per evitare warning in middleware */
 
   // Fallbacks
-  const apiBase   = config.public?.apiBase || config.public?.NUXT_PUBLIC_API_BASE || 'http://localhost:8000'
+  const apiBase = config.public?.apiBase || config.public?.NUXT_PUBLIC_API_BASE || 'http://localhost:8000'
   const apiTimeout = Number(config.public?.apiTimeout ?? 15000)
 
   const isAbsolute = (u) => /^https?:\/\//i.test(u)
@@ -33,11 +33,11 @@ export const useApi = () => {
         const status = ctx.response?.status
         if (status === 401) {
           // Token scaduto o non valido → logout soft
-          try { localStorage.removeItem('token') } catch {}
+          try { localStorage.removeItem('token') } catch { }
           token.value = null
 
           if (process.client) {
-            const current = route?.path || '/'
+            const current = window.location.pathname
             // Evita loop se sei già in pagine pubbliche
             const publicRoutes = new Set(['/', '/login', '/register'])
             if (!publicRoutes.has(current)) navigateTo('/login')
@@ -50,7 +50,7 @@ export const useApi = () => {
   }
 
   // Piccole scorciatoie
-  const apiGet  = (url, opts = {}) => apiFetch(url, { ...opts, method: 'GET' })
+  const apiGet = (url, opts = {}) => apiFetch(url, { ...opts, method: 'GET' })
   const apiPost = (url, body, opts = {}) => apiFetch(url, { ...opts, method: 'POST', body })
   const apiPatch = (url, body, opts = {}) => apiFetch(url, { ...opts, method: 'PATCH', body })
   const apiDelete = (url, opts = {}) => apiFetch(url, { ...opts, method: 'DELETE' })

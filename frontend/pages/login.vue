@@ -46,9 +46,11 @@
               <!-- Submit button -->
               <button
                 type="submit"
+                :disabled="isLoading"
+                :class="{'opacity-50 cursor-not-allowed': isLoading}"
                 class="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
               >
-                Entra
+                {{ isLoading ? 'Accesso in corso...' : 'Entra' }}
               </button>
 
               <!-- Alert -->
@@ -76,15 +78,21 @@ definePageMeta({ layout: 'marketing', public: true })
 const email = ref('')
 const password = ref('')
 const error = ref('')
+const isLoading = ref(false)
 const { login } = useAuth()
 
 const onSubmit = async () => {
+  if (isLoading.value) return
+
   error.value = ''
+  isLoading.value = true
   try {
     await login(email.value, password.value)
     navigateTo('/overview')
   } catch (e) {
     error.value = e?.data?.detail || 'Credenziali non valide'
+  } finally {
+    isLoading.value = false
   }
 }
 </script>

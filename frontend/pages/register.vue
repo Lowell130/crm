@@ -46,9 +46,11 @@
               <!-- Submit Button -->
               <button
                 type="submit"
+                :disabled="isLoading"
+                :class="{'opacity-50 cursor-not-allowed': isLoading}"
                 class="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
               >
-                Crea account
+                {{ isLoading ? 'Creazione in corso...' : 'Crea account' }}
               </button>
 
               <!-- Alert messaggi -->
@@ -82,13 +84,18 @@ const email = ref('')
 const password = ref('')
 const error = ref('')
 const success = ref(false)
+const isLoading = ref(false)
 
 const runtime = useRuntimeConfig()
 const API_BASE = runtime.public?.apiBase || runtime.public?.NUXT_PUBLIC_API_BASE || 'http://localhost:8000'
 
 const onSubmit = async () => {
+  if (isLoading.value) return
+
   error.value = ''
   success.value = false
+  isLoading.value = true
+
   try {
     await $fetch(`${API_BASE}/auth/register`, {
       method: 'POST',
@@ -97,6 +104,8 @@ const onSubmit = async () => {
     success.value = true
   } catch (e) {
     error.value = e?.data?.detail || 'Registrazione non riuscita'
+  } finally {
+    isLoading.value = false
   }
 }
 </script>
