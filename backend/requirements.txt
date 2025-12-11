@@ -7,4 +7,5 @@ python-jose[cryptography]
 pydantic>=2
 email-validator
 pymongo>=4
+openpyxl
 

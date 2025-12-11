@@ -30,3 +30,10 @@ const { lockScroll, unlockScroll } = useModalScrollLock()
 watch(() => props.open, (v) => v ? lockScroll() : unlockScroll())
 onBeforeUnmount(unlockScroll)
 </script>
+<style scoped>
+.fade-enter-active,.fade-leave-active{ transition: opacity .2s ease }
+.fade-enter-from,.fade-leave-to{ opacity:0 }
+.hide-scrollbar{ -ms-overflow-style:none; scrollbar-width:none }
+.hide-scrollbar::-webkit-scrollbar{ display:none }
+.body-lock{ overflow:hidden }
+</style>

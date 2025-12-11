@@ -1,8 +1,10 @@
-from fastapi import APIRouter, HTTPException, status
+# routers/auth.py
+from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import EmailStr
 from ..db import users_col
 from ..models import UserCreate, TokenResponse, LoginRequest
-from ..auth import hash_password, verify_password, create_access_token
+from ..auth import get_current_user, hash_password, verify_password, create_access_token
+
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -22,3 +24,12 @@ async def login(payload: LoginRequest):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     token = create_access_token(sub=user["email"])
     return {"access_token": token, "token_type": "bearer"}
+
+@router.get("/me")
+async def me(user = Depends(get_current_user)):
+    return {
+        "id": str(user["_id"]),
+        "email": user["email"],
+        "name": user.get("name", ""),     # opzionale
+        "role": user.get("role", "user"), # opzionale
+    }

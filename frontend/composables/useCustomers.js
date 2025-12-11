@@ -1,3 +1,4 @@
+// composable/useCustomers.js
 // Gestisce stato + fetch + paginazione + filtri + ricerca live (debounced)
 import { useDebounceFn } from '@vueuse/core'
 

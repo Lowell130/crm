@@ -1,3 +1,4 @@
+# main.py
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from .config import ALLOWED_ORIGINS
@@ -5,8 +6,9 @@ from .routers import auth as auth_router
 from .routers import customers as customers_router
 from .indexes import ensure_indexes
 from .db import db
-
+from app.routers import invoices as invoices_router
 from contextlib import asynccontextmanager
+from app.routers import reports as reports_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -26,6 +28,8 @@ app.add_middleware(
 
 app.include_router(auth_router.router)
 app.include_router(customers_router.router)
+app.include_router(invoices_router.router)
+app.include_router(reports_router.router)
 
 # ✅ Root "alive"
 @app.get("/", tags=["health"])

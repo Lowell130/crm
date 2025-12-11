@@ -12,6 +12,7 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.1.16",
     "@vueuse/core": "^14.0.0",
+    "apexcharts": "^3.46.0",
     "flowbite": "^3.1.2",
     "nuxt": "^3.20.0",
     "tailwindcss": "^4.1.16",

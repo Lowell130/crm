@@ -14,7 +14,7 @@
       <tbody>
         <!-- SKELETON -->
         <template v-if="pending">
-          <tr v-for="i in 8" :key="'sk-'+i" class="border-b">
+          <tr v-for="i in 8" :key="'sk-'+i" class="border-b dark:border-gray-700">
             <td class="px-4 py-3">
               <div class="animate-pulse">
                 <div class="h-4 bg-gray-200 rounded w-40 mb-2"></div>
@@ -29,7 +29,7 @@
         </template>
 
         <!-- EMPTY -->
-        <tr v-else-if="!items.length" class="border-b">
+        <tr v-else-if="!items.length" class="border-b dark:border-gray-700">
           <td class="px-4 py-8 text-center text-gray-500" colspan="5">
             <slot name="empty">
               <div class="flex flex-col items-center gap-2">
@@ -44,7 +44,7 @@
         </tr>
 
         <!-- ROWS -->
-        <tr v-else v-for="c in items" :key="c._id" class="border-b">
+        <tr v-else v-for="c in items" :key="c._id" class="border-b dark:border-gray-700">
           <th class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">
             <div class="flex flex-col">
               <span v-if="c.kind==='B2B'">{{ c.company_name || '—' }}</span>
@@ -54,8 +54,8 @@
           </th>
 
           <td class="px-4 py-3">
-            <span class="px-2 py-0.5 rounded-full text-xs"
-                  :class="c.kind==='B2B' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'">
+            <span class="text-xs me-2 px-2.5 py-0.5 rounded-sm shadow-sm"
+                  :class="c.kind==='B2B' ? 'dark:bg-blue-900 dark:text-blue-300 bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'">
               {{ c.kind }}
             </span>
           </td>
@@ -67,7 +67,7 @@
 
           <td class="px-4 py-3">{{ c.email || '—' }}</td>
 
-          <td class="px-4 py-3 flex items-center justify-end gap-1">
+          <td class="px-4 py-3 inline-flex items-center gap-2">
             <slot name="actions" :customer="c" />
           </td>
         </tr>
@@ -82,3 +82,12 @@ defineProps({
   pending: { type: Boolean, default: false }
 })
 </script>
+
+
+<style scoped>
+.border-b {
+    border-bottom-width: 1px;
+    border-color: #e5e7eb;
+}
+
+</style>

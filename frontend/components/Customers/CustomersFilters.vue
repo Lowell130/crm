@@ -32,7 +32,26 @@
       </ul>
 
       <div class="flex justify-end mt-3 gap-2">
-        <button class="px-3 py-2 text-xs text-white bg-red-700 rounded-full" @click="onReset">Reset</button>
+       <button
+  @click="onReset"
+  class="flex items-center justify-center w-10 h-10 rounded-full bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300"
+>
+  <svg
+    class="w-5 h-5 text-white"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    stroke-width="2"
+  >
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      d="M17.651 7.65a7.131 7.131 0 0 0-12.68 3.15M18.001 4v4h-4m-7.652 8.35a7.13 7.13 0 0 0 12.68-3.15M6 20v-4h4"
+    />
+  </svg>
+</button>
+
         <button class="px-3 py-2 text-xs text-white bg-green-700 rounded-full" @click="onApply">Applica</button>
       </div>
     </div>
