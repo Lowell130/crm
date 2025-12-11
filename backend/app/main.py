@@ -12,15 +12,22 @@ from app.routers import reports as reports_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await ensure_indexes()
+    try:
+        await ensure_indexes()
+    except Exception as e:
+        # Logghiamo l'errore ma non facciamo crashare l'app all'avvio
+        print(f"Startup Warning (Indexes): {e}")
     yield
 
 app = FastAPI(title="CRM Backend", version="0.1.1", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    #allow_origins=ALLOWED_ORIGINS or ["http://localhost:3000", "http://127.0.0.1:3000", "https://crm-xi-two.vercel.app"],
-    allow_origins=["*"], # For testing
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://crm-xi-two.vercel.app",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
