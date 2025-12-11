@@ -6,6 +6,10 @@ from passlib.context import CryptContext
 from .config import JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRES_DELTA
 from .db import users_col
 
+import passlib.handlers.bcrypt
+# WORKAROUND: fix incompatibility between passlib and bcrypt 4.0+
+passlib.handlers.bcrypt.detect_wrap_bug = lambda x: False
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
 
