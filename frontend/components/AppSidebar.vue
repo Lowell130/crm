@@ -1,7 +1,17 @@
 <template>
+  <!-- Backdrop (mobile only) -->
+  <div
+    v-if="sidebarOpen"
+    @click="sidebarOpen = false"
+    class="fixed inset-0 z-30 bg-black/50 md:hidden"
+  ></div>
+
   <!-- sidebar fissa a sinistra sotto l’header -->
   <aside
-    class="fixed top-0 left-0 z-40 w-64 h-screen pt-14 transition-transform -translate-x-full bg-white border-r border-gray-200 md:translate-x-0 dark:bg-gray-800 dark:border-gray-700"
+    :class="[
+      'fixed top-0 left-0 z-40 w-64 h-screen pt-14 transition-transform bg-white border-r border-gray-200 md:translate-x-0 dark:bg-gray-800 dark:border-gray-700',
+      sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+    ]"
     aria-label="Sidenav"
     id="drawer-navigation"
   >
@@ -18,6 +28,7 @@
         <li>
           <NuxtLink
             to="/overview"
+            @click="closeSidebar"
             class="flex items-center p-2 text-base font-medium text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
           >
             <svg aria-hidden="true" class="w-6 h-6 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -31,6 +42,7 @@
   <li>
           <NuxtLink
             to="/dashboard"
+            @click="closeSidebar"
             class="flex items-center p-2 text-base font-medium text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
           >
             <svg class="w-6 h-6 text-gray-500 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
@@ -44,6 +56,7 @@
 <li>
   <NuxtLink
     to="/invoices"
+    @click="closeSidebar"
     class="flex items-center p-2 text-base font-medium text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
   >
     <!-- icona semplice (receipt) -->
@@ -93,4 +106,14 @@
 import { useAuth } from '@/composables/useAuth'
 
 const { logout } = useAuth()
+
+// Shared state with AppHeader
+const sidebarOpen = useState('sidebarOpen', () => false)
+
+function closeSidebar() {
+  // Close sidebar when clicking a link (mobile)
+  if (window.innerWidth < 768) {
+    sidebarOpen.value = false
+  }
+}
 </script>
