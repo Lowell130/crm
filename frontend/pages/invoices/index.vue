@@ -217,7 +217,7 @@ definePageMeta({ layout: 'default' })
 
 const token = useState('token', () => null)
 const runtime = useRuntimeConfig()
-const API_BASE = runtime.public?.NUXT_PUBLIC_API_BASE || 'http://localhost:8000'
+const API_BASE = runtime.public.apiBase
 const page = computed(() => Math.floor(skip.value / limit.value) + 1)
 const hasNext = computed(() => skip.value + items.value.length < total.value)
 const fromItem = computed(() => (total.value === 0 ? 0 : skip.value + 1))

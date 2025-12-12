@@ -328,7 +328,7 @@ const router = useRouter()
 
 const token = useState('token', () => null)
 const runtime = useRuntimeConfig()
-const API_BASE = runtime.public?.apiBase || runtime.public?.NUXT_PUBLIC_API_BASE || 'http://localhost:8000'
+const API_BASE = runtime.public.apiBase
 
 const headers = computed(() => {
   const h = token.value ? { Authorization: `Bearer ${token.value}` } : {}

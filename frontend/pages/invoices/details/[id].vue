@@ -174,7 +174,7 @@ const id = computed(() => route.params.id)
 
 const token = useState('token', () => null)
 const runtime = useRuntimeConfig()
-const API_BASE = runtime.public?.NUXT_PUBLIC_API_BASE || 'http://localhost:8000'
+const API_BASE = runtime.public.apiBase
 const headers = computed(() => ({ Authorization: token.value ? `Bearer ${token.value}` : '' }))
 
 const invoice = ref(null)
